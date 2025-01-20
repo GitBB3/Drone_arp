@@ -4,7 +4,7 @@
 #include <time.h>
 
 int main() {
-	int score=0;
+	int score[2]={0,0};
 	
 	initscr();
 	start_color();
@@ -64,6 +64,7 @@ int main() {
 	int color=1; //Drone initialized in static configuration
 	while (1) {
 		wclear(main_w);
+		wclear(side_w);
 		box(main_w, 0, 0);
     		box(side_w, 0, 0);
 		
@@ -111,7 +112,7 @@ int main() {
 		//wattroff(side_w, COLOR_PAIR(color));
 		
 		mvwprintw(side_w, 20, 3, "SCORE:");
-		mvwprintw(side_w, 21, 3, "%d", score);
+		mvwprintw(side_w, 21, 3, "%d", score[1]);
 		
 		
 		// Update targets
@@ -120,7 +121,15 @@ int main() {
 		    if (x == coor_tar[i][0] && y == coor_tar[i][1])
 		    {
 		        coor_tar[i][2] = 1; // Is reached
-		        score++;
+		        if (coor_tar[i][3]==score[0]+1)
+		        {
+		        	score[1] = score[1] + coor_tar[i][3];
+		        }
+		        else
+		        {
+		        score[1] = coor_tar[i][3];
+		        }
+		        score[0] = coor_tar[i][3];
 		    }
 		}
 		
@@ -137,7 +146,7 @@ int main() {
 				wattron(main_w, COLOR_PAIR(5));
 				mvwprintw(main_w, coor_obs[i][1], coor_obs[i][0], "*");	
 				wattroff(main_w, COLOR_PAIR(5));
-				score--;
+				score[1] = score[1] - score[0]/2;
 			}
 			else
 			{
