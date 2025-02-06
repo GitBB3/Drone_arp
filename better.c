@@ -46,6 +46,12 @@ void GetKeyboardInstructions(int *running, int ch, int *color, float *Fx, float 
 			}
 }
 
+void DisplayDrone(float x, float y, int color, WINDOW *main_w)
+{
+	wattron(main_w, COLOR_PAIR(color));
+	mvwprintw(main_w, y, x, "+");
+	wattroff(main_w, COLOR_PAIR(color));
+}
 
 int main() {
 	float M = 1;
@@ -273,10 +279,7 @@ int main() {
 		////////////////////////////////////////////////////////////////////////////////////////////
 		// Display the drone //
 		////////////////////////////////////////////////////////////////////////////////////////////
-		
-		wattron(main_w, COLOR_PAIR(color));
-		mvwprintw(main_w, y, x, "+");
-		wattroff(main_w, COLOR_PAIR(color));
+		DisplayDrone(x, y, color, main_w);
 		
 		////////////////////////////////////////////////////////////////////////////////////////////
 		// Display the obstacles //
