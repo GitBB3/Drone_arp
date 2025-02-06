@@ -74,6 +74,27 @@ void DisplayTargets(int coor_tar[][4], int max_pos_x, int max_pos_y, int min, in
 		}
 }
 
+void DisplayObstacles(int coor_obs[][2], int nb_obs, WINDOW *main_w, float x, float y)
+{
+	for (int i=0;i<nb_obs;i++)
+		{
+		if (x == coor_obs[i][0] && y == coor_obs[i][1])
+			{
+			wattron(main_w, COLOR_PAIR(5));
+			mvwprintw(main_w, coor_obs[i][1], coor_obs[i][0], "*");	
+			wattroff(main_w, COLOR_PAIR(5));
+			//score[1] = score[1] - score[0]/2;
+			}
+		else
+			{
+			wattron(main_w, COLOR_PAIR(3));
+			mvwprintw(main_w, coor_obs[i][1], coor_obs[i][0], "o");	
+			wattroff(main_w, COLOR_PAIR(3));
+			}	
+		}
+}
+
+
 int main() {
 	float M = 1;
 	float K = 1;
@@ -276,35 +297,11 @@ int main() {
 		////////////////////////////////////////////////////////////////////////////////////////////
 		
 		////////////////////////////////////////////////////////////////////////////////////////////
-		// Display the targets //
+		// Display the targets, the drone and the obstacles //
 		////////////////////////////////////////////////////////////////////////////////////////////
 		DisplayTargets(coor_tar, max_pos_x, max_pos_y, min, nb_tar, &num_tar, main_w);
-		
-		////////////////////////////////////////////////////////////////////////////////////////////
-		// Display the drone //
-		////////////////////////////////////////////////////////////////////////////////////////////
 		DisplayDrone(x, y, color, main_w);
-		
-		////////////////////////////////////////////////////////////////////////////////////////////
-		// Display the obstacles //
-		////////////////////////////////////////////////////////////////////////////////////////////
-		
-		for (int i=0;i<nb_obs;i++)
-			{
-				if (x == coor_obs[i][0] && y == coor_obs[i][1])
-				{
-					wattron(main_w, COLOR_PAIR(5));
-					mvwprintw(main_w, coor_obs[i][1], coor_obs[i][0], "*");	
-					wattroff(main_w, COLOR_PAIR(5));
-					//score[1] = score[1] - score[0]/2;
-				}
-				else
-				{
-					wattron(main_w, COLOR_PAIR(3));
-					mvwprintw(main_w, coor_obs[i][1], coor_obs[i][0], "o");	
-					wattroff(main_w, COLOR_PAIR(3));
-				}	
-			}
+		DisplayObstacles(coor_obs, nb_obs, main_w, x, y);
 		
 		////////////////////////////////////////////////////////////////////////////////////////////
 		// Refresh the windows //
