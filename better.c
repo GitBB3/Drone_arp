@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
+#include <math.h>
 
 float UpdatePosition(float x_past, float x_past_past, float F, float M, float K, float T){
 	float A = (x_past_past - 2*x_past) * M/(T*T);
@@ -53,7 +54,7 @@ void DisplayDrone(float x, float y, int color, WINDOW *main_w)
 	wattroff(main_w, COLOR_PAIR(color));
 }
 
-void DisplayTargets(int coor_tar[][4], int max_pos_x, int max_pos_y, int min, int nb_tar, int *num_tar, WINDOW *main_w)
+void DisplayTargets(int coor_tar[][4], int max_pos_x, int max_pos_y, int min, int nb_tar, int *num_tar, WINDOW *main_w) // Split the Displays in Display and Update
 {
 	for (int i=0;i<nb_tar;i++)
 		{
@@ -62,7 +63,7 @@ void DisplayTargets(int coor_tar[][4], int max_pos_x, int max_pos_y, int min, in
 		 	coor_tar[i][0] = (rand() % (max_pos_x - min + 1)) + min;
 			coor_tar[i][1] = (rand() % (max_pos_y - min + 1)) + min;
 			coor_tar[i][2] = 0;
-			*num_tar++;
+			(*num_tar)++;
 			coor_tar[i][3] = *num_tar;
 			} 
 		else 
@@ -74,11 +75,11 @@ void DisplayTargets(int coor_tar[][4], int max_pos_x, int max_pos_y, int min, in
 		}
 }
 
-void DisplayObstacles(int coor_obs[][2], int nb_obs, WINDOW *main_w, float x, float y)
+void DisplayObstacles(int coor_obs[][2], int nb_obs, WINDOW *main_w, float x, float y, float dist_thresh)
 {
 	for (int i=0;i<nb_obs;i++)
 		{
-		if (x == coor_obs[i][0] && y == coor_obs[i][1])
+		if (fabs(x - coor_obs[i][0]) < dist_thresh && fabs(y - coor_obs[i][1]) < dist_thresh)
 			{
 			wattron(main_w, COLOR_PAIR(5));
 			mvwprintw(main_w, coor_obs[i][1], coor_obs[i][0], "*");	
@@ -94,6 +95,101 @@ void DisplayObstacles(int coor_obs[][2], int nb_obs, WINDOW *main_w, float x, fl
 		}
 }
 
+void DisplayInspectionWindow(WINDOW *main_w, WINDOW *side_w)
+{
+	for (int i=2;i<14;i++)
+		{
+		mvwprintw(side_w, 2, i, "_");
+		mvwprintw(side_w, 5, i, "_");
+		mvwprintw(side_w, 8, i, "_");
+		mvwprintw(side_w, 11, i, "_");
+		}
+	mvwprintw(side_w, 2, 2, ".");
+	mvwprintw(side_w, 2, 6, ".");
+	mvwprintw(side_w, 2, 10, ".");
+	mvwprintw(side_w, 2, 14, ".");
+	for (int j=3; j<12; j++)
+		{
+		mvwprintw(side_w, j, 2, "|");
+		mvwprintw(side_w, j, 6, "|");
+		mvwprintw(side_w, j, 10, "|");
+		mvwprintw(side_w, j, 14, "|");
+		}
+	mvwprintw(side_w, 3, 4, "_"); // Top Left
+	mvwprintw(side_w, 4, 3, "'");
+	mvwprintw(side_w, 4, 4, "\\");
+	mvwprintw(side_w, 3, 8, "A"); // Top
+	mvwprintw(side_w, 4, 8, "|");
+	mvwprintw(side_w, 3, 12, "_"); // Top Right
+	mvwprintw(side_w, 4, 12, "/");
+	mvwprintw(side_w, 4, 13, "'");
+	mvwprintw(side_w, 7, 12, "-"); // Right
+	mvwprintw(side_w, 7, 13, ">");
+	mvwprintw(side_w, 10, 12, "\\"); // Bottom Right
+	mvwprintw(side_w, 10, 13, "|");
+	mvwprintw(side_w, 11, 12, "'");
+	mvwprintw(side_w, 10, 8, "|"); // Bottom
+	mvwprintw(side_w, 11, 8, "V");
+	mvwprintw(side_w, 10, 4, "/"); // Bottom Left
+	mvwprintw(side_w, 10, 3, "|");
+	mvwprintw(side_w, 11, 4, "'");
+	mvwprintw(side_w, 7, 4, "-"); // Left
+	mvwprintw(side_w, 7, 3, "<");
+	//wattron(side_w, COLOR_PAIR(color)); // Play or Pause
+	mvwprintw(side_w, 7, 8, "@"); 
+	//wattroff(side_w, COLOR_PAIR(color));
+		
+	for (int i=2;i<14;i++) ///////////////////////////////////////////// Keyboard: Letters
+		{
+		mvwprintw(side_w, 13, i, "_");
+		mvwprintw(side_w, 16, i, "_");
+		mvwprintw(side_w, 19, i, "_");
+		mvwprintw(side_w, 22, i, "_");
+		}
+	mvwprintw(side_w, 13, 2, ".");
+	mvwprintw(side_w, 13, 6, ".");
+	mvwprintw(side_w, 13, 10, ".");
+	mvwprintw(side_w, 13, 14, ".");
+	for (int j=14; j<23; j++)
+		{
+		mvwprintw(side_w, j, 2, "|");
+		mvwprintw(side_w, j, 6, "|");
+		mvwprintw(side_w, j, 10, "|");
+		mvwprintw(side_w, j, 14, "|");
+		}
+	mvwprintw(side_w, 15, 4, "E"); // Top Left
+	mvwprintw(side_w, 15, 8, "R"); // Top
+	mvwprintw(side_w, 15, 12, "T"); // Top Right
+	mvwprintw(side_w, 18, 12, "G"); // Right
+	mvwprintw(side_w, 21, 12, "B"); // Bottom Right
+	mvwprintw(side_w, 21, 8, "V"); // Bottom
+	mvwprintw(side_w, 21, 4, "C"); // Bottom Left
+	mvwprintw(side_w, 18, 4, "D"); // Left
+	mvwprintw(side_w, 18, 8, "F"); // Freeze
+	mvwprintw(side_w, 18, 15, "Press F to Freeze");
+	mvwprintw(side_w, 35, 3, "SCORE:");
+	//mvwprintw(side_w, 36, 3, "%d", score[1]);
+}
+
+void UpdateTargets(int coor_tar[][4], float x, float y, int nb_tar, float dist_threshold)
+{
+	for (int i = 0; i < nb_tar; i++) // Update if targets are reached
+		{
+		if (fabs(x - coor_tar[i][0]) < dist_threshold && fabs(y - coor_tar[i][1]) < dist_threshold)
+			{
+		        coor_tar[i][2] = 1; // Is reached
+		        //if (coor_tar[i][3]==score[0]+1)
+			        //{
+		        	//score[1] = score[1] + coor_tar[i][3];
+			        //}
+		        //else
+			        //{
+			        //score[1] = coor_tar[i][3];
+			        //}
+		        //score[0] = coor_tar[i][3];
+			}
+		}
+}
 
 int main() {
 	float M = 1;
@@ -150,6 +246,7 @@ int main() {
 	int max_pos_y = main_height-2;
 	int max_pos_x = main_width-2;
 	int min = 2;
+	int score[2]={0,0};
 	srand(time(NULL));
 	
 	//Def colors
@@ -182,6 +279,7 @@ int main() {
 	
 	int nb_obs=5;
 	int coor_obs[nb_obs][2];
+	float dist_threshold = 0.5;
 	
 	for (int i=0;i<nb_obs;i++)
 	{
@@ -216,81 +314,12 @@ int main() {
 		////////////////////////////////////////////////////////////////////////////////////////////
 		// Display the inspection window //
 		////////////////////////////////////////////////////////////////////////////////////////////
-		for (int i=2;i<14;i++)
-			{
-				mvwprintw(side_w, 2, i, "_");
-				mvwprintw(side_w, 5, i, "_");
-				mvwprintw(side_w, 8, i, "_");
-				mvwprintw(side_w, 11, i, "_");
-			}
-			mvwprintw(side_w, 2, 2, ".");
-			mvwprintw(side_w, 2, 6, ".");
-			mvwprintw(side_w, 2, 10, ".");
-			mvwprintw(side_w, 2, 14, ".");
-			for (int j=3; j<12; j++)
-			{
-				mvwprintw(side_w, j, 2, "|");
-				mvwprintw(side_w, j, 6, "|");
-				mvwprintw(side_w, j, 10, "|");
-				mvwprintw(side_w, j, 14, "|");
-			}
-			mvwprintw(side_w, 3, 4, "_"); // Top Left
-			mvwprintw(side_w, 4, 3, "'");
-			mvwprintw(side_w, 4, 4, "\\");
-			mvwprintw(side_w, 3, 8, "A"); // Top
-			mvwprintw(side_w, 4, 8, "|");
-			mvwprintw(side_w, 3, 12, "_"); // Top Right
-			mvwprintw(side_w, 4, 12, "/");
-			mvwprintw(side_w, 4, 13, "'");
-			mvwprintw(side_w, 7, 12, "-"); // Right
-			mvwprintw(side_w, 7, 13, ">");
-			mvwprintw(side_w, 10, 12, "\\"); // Bottom Right
-			mvwprintw(side_w, 10, 13, "|");
-			mvwprintw(side_w, 11, 12, "'");
-			mvwprintw(side_w, 10, 8, "|"); // Bottom
-			mvwprintw(side_w, 11, 8, "V");
-			mvwprintw(side_w, 10, 4, "/"); // Bottom Left
-			mvwprintw(side_w, 10, 3, "|");
-			mvwprintw(side_w, 11, 4, "'");
-			mvwprintw(side_w, 7, 4, "-"); // Left
-			mvwprintw(side_w, 7, 3, "<");
-			//wattron(side_w, COLOR_PAIR(color)); // Play or Pause
-			mvwprintw(side_w, 7, 8, "@"); 
-			//wattroff(side_w, COLOR_PAIR(color));
-			
-			for (int i=2;i<14;i++) ///////////////////////////////////////////// Keyboard: Letters
-			{
-				mvwprintw(side_w, 13, i, "_");
-				mvwprintw(side_w, 16, i, "_");
-				mvwprintw(side_w, 19, i, "_");
-				mvwprintw(side_w, 22, i, "_");
-			}
-			mvwprintw(side_w, 13, 2, ".");
-			mvwprintw(side_w, 13, 6, ".");
-			mvwprintw(side_w, 13, 10, ".");
-			mvwprintw(side_w, 13, 14, ".");
-			for (int j=14; j<23; j++)
-			{
-				mvwprintw(side_w, j, 2, "|");
-				mvwprintw(side_w, j, 6, "|");
-				mvwprintw(side_w, j, 10, "|");
-				mvwprintw(side_w, j, 14, "|");
-			}
-			mvwprintw(side_w, 15, 4, "E"); // Top Left
-			mvwprintw(side_w, 15, 8, "R"); // Top
-			mvwprintw(side_w, 15, 12, "T"); // Top Right
-			mvwprintw(side_w, 18, 12, "G"); // Right
-			mvwprintw(side_w, 21, 12, "B"); // Bottom Right
-			mvwprintw(side_w, 21, 8, "V"); // Bottom
-			mvwprintw(side_w, 21, 4, "C"); // Bottom Left
-			mvwprintw(side_w, 18, 4, "D"); // Left
-			mvwprintw(side_w, 18, 8, "F"); // Freeze
-			mvwprintw(side_w, 18, 15, "Press F to Freeze");
-		
+		DisplayInspectionWindow(main_w, side_w);
 		
 		////////////////////////////////////////////////////////////////////////////////////////////
 		// Update targets //
 		////////////////////////////////////////////////////////////////////////////////////////////
+		UpdateTargets(coor_tar, x, y, nb_tar, dist_threshold);
 		
 		////////////////////////////////////////////////////////////////////////////////////////////
 		// Update obstacles //
@@ -301,7 +330,7 @@ int main() {
 		////////////////////////////////////////////////////////////////////////////////////////////
 		DisplayTargets(coor_tar, max_pos_x, max_pos_y, min, nb_tar, &num_tar, main_w);
 		DisplayDrone(x, y, color, main_w);
-		DisplayObstacles(coor_obs, nb_obs, main_w, x, y);
+		DisplayObstacles(coor_obs, nb_obs, main_w, x, y, dist_threshold);
 		
 		////////////////////////////////////////////////////////////////////////////////////////////
 		// Refresh the windows //
