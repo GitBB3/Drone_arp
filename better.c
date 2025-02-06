@@ -53,6 +53,27 @@ void DisplayDrone(float x, float y, int color, WINDOW *main_w)
 	wattroff(main_w, COLOR_PAIR(color));
 }
 
+void DisplayTargets(int coor_tar[][4], int max_pos_x, int max_pos_y, int min, int nb_tar, int *num_tar, WINDOW *main_w)
+{
+	for (int i=0;i<nb_tar;i++)
+		{
+		if (coor_tar[i][2] == 1) // If the target is reached
+			{ 
+		 	coor_tar[i][0] = (rand() % (max_pos_x - min + 1)) + min;
+			coor_tar[i][1] = (rand() % (max_pos_y - min + 1)) + min;
+			coor_tar[i][2] = 0;
+			*num_tar++;
+			coor_tar[i][3] = *num_tar;
+			} 
+		else 
+			{
+				wattron(main_w, COLOR_PAIR(4));
+			}
+		mvwprintw(main_w, coor_tar[i][1], coor_tar[i][0], "%d", coor_tar[i][3]);
+		wattroff(main_w, COLOR_PAIR(4));	
+		}
+}
+
 int main() {
 	float M = 1;
 	float K = 1;
@@ -257,24 +278,7 @@ int main() {
 		////////////////////////////////////////////////////////////////////////////////////////////
 		// Display the targets //
 		////////////////////////////////////////////////////////////////////////////////////////////
-		
-		for (int i=0;i<nb_tar;i++)
-			{
-				if (coor_tar[i][2] == 1) // If the target is reached
-				{ 
-				 	coor_tar[i][0] = (rand() % (max_pos_x - min + 1)) + min;
-					coor_tar[i][1] = (rand() % (max_pos_y - min + 1)) + min;
-					coor_tar[i][2] = 0;
-					num_tar++;
-					coor_tar[i][3] = num_tar;
-				} 
-				else 
-				{
-					wattron(main_w, COLOR_PAIR(4));
-				}
-				mvwprintw(main_w, coor_tar[i][1], coor_tar[i][0], "%d", coor_tar[i][3]);
-				wattroff(main_w, COLOR_PAIR(4));	
-			}
+		DisplayTargets(coor_tar, max_pos_x, max_pos_y, min, nb_tar, &num_tar, main_w);
 		
 		////////////////////////////////////////////////////////////////////////////////////////////
 		// Display the drone //
