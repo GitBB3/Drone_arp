@@ -111,8 +111,36 @@ int main() {
 		mvwprintw(side_w, 7, 8, "@"); 
 		//wattroff(side_w, COLOR_PAIR(color));
 		
-		mvwprintw(side_w, 20, 3, "SCORE:");
-		mvwprintw(side_w, 21, 3, "%d", score[1]);
+		for (int i=2;i<14;i++) ///////////////////////////////////////////// Keyboard: Letters
+		{
+			mvwprintw(side_w, 13, i, "_");
+			mvwprintw(side_w, 16, i, "_");
+			mvwprintw(side_w, 19, i, "_");
+			mvwprintw(side_w, 22, i, "_");
+		}
+		mvwprintw(side_w, 13, 2, ".");
+		mvwprintw(side_w, 13, 6, ".");
+		mvwprintw(side_w, 13, 10, ".");
+		mvwprintw(side_w, 13, 14, ".");
+		for (int j=14; j<23; j++)
+		{
+			mvwprintw(side_w, j, 2, "|");
+			mvwprintw(side_w, j, 6, "|");
+			mvwprintw(side_w, j, 10, "|");
+			mvwprintw(side_w, j, 14, "|");
+		}
+		mvwprintw(side_w, 15, 4, "E"); // Top Left
+		mvwprintw(side_w, 15, 8, "R"); // Top
+		mvwprintw(side_w, 15, 12, "T"); // Top Right
+		mvwprintw(side_w, 18, 12, "G"); // Right
+		mvwprintw(side_w, 21, 12, "B"); // Bottom Right
+		mvwprintw(side_w, 21, 8, "V"); // Bottom
+		mvwprintw(side_w, 21, 4, "C"); // Bottom Left
+		mvwprintw(side_w, 18, 4, "D"); // Left
+		mvwprintw(side_w, 18, 8, "F"); // On/Off
+		
+		mvwprintw(side_w, 24, 3, "SCORE:");
+		mvwprintw(side_w, 25, 3, "%d", score[1]);
 		
 		
 		// Update targets
