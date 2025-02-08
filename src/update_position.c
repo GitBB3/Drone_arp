@@ -9,13 +9,13 @@ float UpdatePosition(float x_past, float x_past_past, float F, float M, float K,
 	return res;
 }
 
-void UpdateDroneDynamics(float *x, float *x_past, float *x_past_past, float *y, float *y_past, float *y_past_past, float Fx, float Fy, float M, float K, float T)
+void UpdateDroneDynamics(float *x, float *x_past, float *x_past_past, float *y, float *y_past, float *y_past_past, float F_command[2], float M, float K, float T)
 {
 	*x_past_past = *x_past;
 	*y_past_past = *y_past;
 	*x_past = *x;
 	*y_past = *y;
-	*x = UpdatePosition(*x_past, *x_past_past, Fx, M, K, T);
-	*y = UpdatePosition(*y_past, *y_past_past, Fy, M, K, T);
+	*x = UpdatePosition(*x_past, *x_past_past, F_command[0], M, K, T);
+	*y = UpdatePosition(*y_past, *y_past_past, F_command[1], M, K, T);
 }
 

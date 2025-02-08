@@ -172,7 +172,7 @@ int main() {
 		// UpdateForces();
 		if (color == 2)
 		{
-			UpdateDroneDynamics(&x, &x_past, &x_past_past, &y, &y_past, &y_past_past, F_command[0], F_command[1], M, K, T);
+			UpdateDroneDynamics(&x, &x_past, &x_past_past, &y, &y_past, &y_past_past, F_command, M, K, T);
 		}
 
 		usleep(1e4);
