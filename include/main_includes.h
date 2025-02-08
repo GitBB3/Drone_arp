@@ -9,5 +9,6 @@
 #include "display_inspection_window.h"
 #include "update_targets.h"
 #include "update_obstacles.h"
+#include "update_force_repulsive.h"
 
 #endif

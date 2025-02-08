@@ -13,9 +13,12 @@ int main() {
 	float K = 1;
 	float T = 0.1;
 	float F_command[2] = {0,0};
+	float F_repulsive[2] = {0,0};
 	float dF = 0.1;
 	int max_lifetime = 1e3; // in (unity)seconds // 1e3
 	int min_lifetime = 1e2; // 1e2
+	float repulsion_param = 10; // 0.1 / 10 in assignment
+	float detection_threshold = 20; //in pixels... should be 5m
 ////////////////////////////////////////////////////////////////////////////////////////////
 // Initialize ncurses //
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -96,7 +99,7 @@ int main() {
 // Initialize obstacles //
 ////////////////////////////////////////////////////////////////////////////////////////////
 	
-	int nb_obs=10;
+	int nb_obs=60;
 	int coor_obs[nb_obs][4]; // x, y, is_reached, life_time
 	float dist_threshold = 1;
 	
@@ -112,9 +115,9 @@ int main() {
 // Initialize drone //
 ////////////////////////////////////////////////////////////////////////////////////////////
 	
-	float x_past_past = 10, y_past_past = 10;
-	float x_past = 10, y_past = 10;
-	float x = 10, y = 10;
+	float x_past_past = max_pos_x/2, y_past_past = max_pos_y/2;
+	float x_past = max_pos_x/2, y_past = max_pos_y/2;
+	float x = max_pos_x/2, y = max_pos_y/2;
 	int color=1; //Drone initialized in static configuration
 	
 	int running = 1;
@@ -132,6 +135,10 @@ int main() {
 		mvwprintw(side_w, 30, 8, "%f", F_command[0]);
 		mvwprintw(side_w, 31, 3, "Fy:");
 		mvwprintw(side_w, 31, 8, "%f", F_command[1]);
+		mvwprintw(side_w, 32, 3, "Fr_x:");
+		mvwprintw(side_w, 32, 8, "%f", F_repulsive[0]);
+		mvwprintw(side_w, 33, 3, "Fr_y:");
+		mvwprintw(side_w, 33, 8, "%f", F_repulsive[1]);
 		////////////////////////////////////////////////////////////////////////////////////////////
 		// Display the inspection window //
 		////////////////////////////////////////////////////////////////////////////////////////////
@@ -169,10 +176,11 @@ int main() {
 		////////////////////////////////////////////////////////////////////////////////////////////
         // Update the dynamics of the drone //
         ////////////////////////////////////////////////////////////////////////////////////////////
-		// UpdateForces();
+		
 		if (color == 2)
 		{
-			UpdateDroneDynamics(&x, &x_past, &x_past_past, &y, &y_past, &y_past_past, F_command, M, K, T);
+			UpdateForceRepulsive(F_repulsive, nb_obs, coor_obs, x, x_past, x_past_past, y, y_past, y_past_past, repulsion_param, dist_threshold, detection_threshold);
+			UpdateDroneDynamics(&x, &x_past, &x_past_past, &y, &y_past, &y_past_past, F_command, F_repulsive, M, K, T);
 		}
 
 		usleep(1e4);
