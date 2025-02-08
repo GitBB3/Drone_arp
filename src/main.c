@@ -67,7 +67,7 @@ int main() {
 	
 	int max_pos_y = main_height-2;
 	int max_pos_x = main_width-2;
-	int min = 2;
+	int min_pos = 2;
 	int score[2]={0,0};
 	srand(time(NULL));
 	
@@ -89,8 +89,8 @@ int main() {
 	
 	for (int i=0;i<nb_tar;i++)
 	{
-		coor_tar[i][0] = (rand() % (max_pos_x - min + 1)) + min;
-		coor_tar[i][1] = (rand() % (max_pos_y - min + 1)) + min;
+		coor_tar[i][0] = (rand() % (max_pos_x - min_pos + 1)) + min_pos;
+		coor_tar[i][1] = (rand() % (max_pos_y - min_pos + 1)) + min_pos;
 		coor_tar[i][2] = 0;
 		coor_tar[i][3] = i+1;
 	}
@@ -105,8 +105,8 @@ int main() {
 	
 	for (int i=0;i<nb_obs;i++)
 	{
-		coor_obs[i][0] = (rand() % (max_pos_x - min + 1)) + min;
-		coor_obs[i][1] = (rand() % (max_pos_y - min + 1)) + min;
+		coor_obs[i][0] = (rand() % (max_pos_x - min_pos + 1)) + min_pos;
+		coor_obs[i][1] = (rand() % (max_pos_y - min_pos + 1)) + min_pos;
 		coor_obs[i][2] = 0;
 		coor_obs[i][3] = (rand() % (max_lifetime - min_lifetime + 1)) + min_lifetime;
 	}
@@ -149,14 +149,13 @@ int main() {
 		////////////////////////////////////////////////////////////////////////////////////////////
 		if (color == 2)
 		{
-			UpdateTargets(coor_tar, x, y, nb_tar, &num_tar, max_pos_x, max_pos_y, min, dist_threshold);
-			UpdateObstacles(coor_obs, x, y, nb_obs, max_pos_x, max_pos_y, min, dist_threshold, max_lifetime, min_lifetime);
+			UpdateTargets(coor_tar, x, y, nb_tar, &num_tar, max_pos_x, max_pos_y, min_pos, dist_threshold);
+			UpdateObstacles(coor_obs, x, y, nb_obs, max_pos_x, max_pos_y, min_pos, dist_threshold, max_lifetime, min_lifetime);
 		}
 
 		////////////////////////////////////////////////////////////////////////////////////////////
 		// Display the targets, the drone and the obstacles //
 		////////////////////////////////////////////////////////////////////////////////////////////
-		// DisplayTargets(coor_tar, max_pos_x, max_pos_y, min, nb_tar, &num_tar, main_w);
 		DisplayTargets(coor_tar, nb_tar, main_w);
 		DisplayDrone(x, y, color, main_w);
 		DisplayObstacles(coor_obs, nb_obs, main_w);
@@ -180,7 +179,7 @@ int main() {
 		if (color == 2)
 		{
 			UpdateForceRepulsive(F_repulsive, nb_obs, coor_obs, x, x_past, x_past_past, y, y_past, y_past_past, repulsion_param, dist_threshold, detection_threshold);
-			UpdateDroneDynamics(&x, &x_past, &x_past_past, &y, &y_past, &y_past_past, F_command, F_repulsive, M, K, T);
+			UpdateDroneDynamics(&x, &x_past, &x_past_past, &y, &y_past, &y_past_past, min_pos, max_pos_x, min_pos, max_pos_y, F_command, F_repulsive, M, K, T);
 		}
 
 		usleep(1e4);
