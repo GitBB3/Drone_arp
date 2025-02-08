@@ -12,7 +12,7 @@ OBJ = $(SRC:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 $(shell mkdir -p $(OBJ_DIR) $(BIN_DIR))
 
 $(BIN_DIR)/$(EXEC): $(OBJ)
-	$(CC) $(OBJ) -o $@ -lncurses
+	$(CC) $(OBJ) -o $@ -lncurses -lm
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@

@@ -9,10 +9,10 @@
 
 
 int main() {
-	float M = 1;
+	float M = 3; // en kg
 	float K = 1;
 	float T = 0.1;
-	float Fx=0, Fy=0;
+	float F_command[2] = {0,0};
 	float dF = 0.1;
 	int max_lifetime = 1e3; // in (unity)seconds // 1e3
 	int min_lifetime = 1e2; // 1e2
@@ -127,31 +127,24 @@ int main() {
 		werase(side_w);
 		box(main_w, 0, 0);
 	    	box(side_w, 0, 0);
-		mvwprintw(side_w, 25, 3, "Pos init: %f, %f", x, y);
+		mvwprintw(side_w, 25, 3, "Pos drone: %f, %f", x, y);
 		mvwprintw(side_w, 30, 3, "Fx:");
-		mvwprintw(side_w, 30, 8, "%f", Fx);
+		mvwprintw(side_w, 30, 8, "%f", F_command[0]);
 		mvwprintw(side_w, 31, 3, "Fy:");
-		mvwprintw(side_w, 31, 8, "%f", Fy);
+		mvwprintw(side_w, 31, 8, "%f", F_command[1]);
 		////////////////////////////////////////////////////////////////////////////////////////////
 		// Display the inspection window //
 		////////////////////////////////////////////////////////////////////////////////////////////
 		DisplayInspectionWindow(main_w, side_w);
 		
 		////////////////////////////////////////////////////////////////////////////////////////////
-		// Update targets //
+		// Update targets and obstacles = check if reached by the drone & replace if so //
 		////////////////////////////////////////////////////////////////////////////////////////////
-		// UpdateTargets(coor_tar, x, y, nb_tar, dist_threshold);
-		UpdateTargets(coor_tar, x, y, nb_tar, &num_tar, max_pos_x, max_pos_y, min, dist_threshold);
-		
-		////////////////////////////////////////////////////////////////////////////////////////////
-		// Update obstacles //
-		////////////////////////////////////////////////////////////////////////////////////////////
-		UpdateObstacles(coor_obs, x, y, nb_obs, max_pos_x, max_pos_y, min, dist_threshold, max_lifetime, min_lifetime);
-		for (int i=0;i<nb_obs;i++) 
-			{
-				mvwprintw(side_w, 40+i, 3, "%d", coor_obs[i][3]);
-				mvwprintw(side_w, 40+i, 8, "%d", coor_obs[i][2]);	
-			}
+		if (color == 2)
+		{
+			UpdateTargets(coor_tar, x, y, nb_tar, &num_tar, max_pos_x, max_pos_y, min, dist_threshold);
+			UpdateObstacles(coor_obs, x, y, nb_obs, max_pos_x, max_pos_y, min, dist_threshold, max_lifetime, min_lifetime);
+		}
 
 		////////////////////////////////////////////////////////////////////////////////////////////
 		// Display the targets, the drone and the obstacles //
@@ -172,8 +165,16 @@ int main() {
 		// Get the keyboard instructions //
 		////////////////////////////////////////////////////////////////////////////////////////////
 		int ch = getch();
-		GetKeyboardInstructions(&running, ch, &color, &Fx, &Fy, &x, &y, &x_past, &x_past_past, &y_past, &y_past_past, M, K, T, dF);
-		
+		GetKeyboardInstructions(&running, ch, &color, F_command, dF);
+		////////////////////////////////////////////////////////////////////////////////////////////
+        // Update the dynamics of the drone //
+        ////////////////////////////////////////////////////////////////////////////////////////////
+		// UpdateForces();
+		if (color == 2)
+		{
+			UpdateDroneDynamics(&x, &x_past, &x_past_past, &y, &y_past, &y_past_past, F_command[0], F_command[1], M, K, T);
+		}
+
 		usleep(1e4);
 	}
 		
