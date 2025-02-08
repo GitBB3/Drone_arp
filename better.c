@@ -54,39 +54,29 @@ void DisplayDrone(float x, float y, int color, WINDOW *main_w)
 	wattroff(main_w, COLOR_PAIR(color));
 }
 
-void DisplayTargets(int coor_tar[][4], int max_pos_x, int max_pos_y, int min, int nb_tar, int *num_tar, WINDOW *main_w) // Split the Displays in Display and Update
+
+void DisplayTargets(int coor_tar[][4], int nb_tar, WINDOW *main_w) // Split the Displays in Display and Update
 {
 	for (int i=0;i<nb_tar;i++)
 		{
-		if (coor_tar[i][2] == 1) // If the target is reached
-			{ 
-		 	coor_tar[i][0] = (rand() % (max_pos_x - min + 1)) + min;
-			coor_tar[i][1] = (rand() % (max_pos_y - min + 1)) + min;
-			coor_tar[i][2] = 0;
-			(*num_tar)++;
-			coor_tar[i][3] = *num_tar;
-			} 
-		else 
-			{
-				wattron(main_w, COLOR_PAIR(4));
-			}
+		wattron(main_w, COLOR_PAIR(4));
 		mvwprintw(main_w, coor_tar[i][1], coor_tar[i][0], "%d", coor_tar[i][3]);
 		wattroff(main_w, COLOR_PAIR(4));	
 		}
 }
 
-void DisplayObstacles(int coor_obs[][2], int nb_obs, WINDOW *main_w, float x, float y, float dist_thresh)
+void DisplayObstacles(int coor_obs[][4], int nb_obs, WINDOW *main_w)
 {
 	for (int i=0;i<nb_obs;i++)
 		{
-		if (fabs(x - coor_obs[i][0]) < dist_thresh && fabs(y - coor_obs[i][1]) < dist_thresh)
+		if (coor_obs[i][2] == 1)
 			{
 			wattron(main_w, COLOR_PAIR(5));
 			mvwprintw(main_w, coor_obs[i][1], coor_obs[i][0], "*");	
 			wattroff(main_w, COLOR_PAIR(5));
 			//score[1] = score[1] - score[0]/2;
 			}
-		else
+		else if (coor_obs[i][2] == 0)
 			{
 			wattron(main_w, COLOR_PAIR(3));
 			mvwprintw(main_w, coor_obs[i][1], coor_obs[i][0], "o");	
@@ -171,23 +161,42 @@ void DisplayInspectionWindow(WINDOW *main_w, WINDOW *side_w)
 	//mvwprintw(side_w, 36, 3, "%d", score[1]);
 }
 
-void UpdateTargets(int coor_tar[][4], float x, float y, int nb_tar, float dist_threshold)
+
+void UpdateTargets(int coor_tar[][4], float x, float y, int nb_tar, int *num_tar, int max_pos_x, int max_pos_y, int min, float dist_threshold)
 {
 	for (int i = 0; i < nb_tar; i++) // Update if targets are reached
 		{
-		if (fabs(x - coor_tar[i][0]) < dist_threshold && fabs(y - coor_tar[i][1]) < dist_threshold)
+		if (coor_tar[i][2] == 0 && fabs(x - coor_tar[i][0]) < dist_threshold && fabs(y - coor_tar[i][1]) < dist_threshold)
 			{
-		        coor_tar[i][2] = 1; // Is reached
-		        //if (coor_tar[i][3]==score[0]+1)
-			        //{
-		        	//score[1] = score[1] + coor_tar[i][3];
-			        //}
-		        //else
-			        //{
-			        //score[1] = coor_tar[i][3];
-			        //}
-		        //score[0] = coor_tar[i][3];
+		    coor_tar[i][2] = 1; // Is reached
 			}
+		else if (coor_tar[i][2] == 1)
+            {
+			coor_tar[i][0] = (rand() % (max_pos_x - min + 1)) + min;
+			coor_tar[i][1] = (rand() % (max_pos_y - min + 1)) + min;
+			coor_tar[i][2] = 0;
+			(*num_tar)++;
+			coor_tar[i][3] = *num_tar;
+        	}
+		}
+}
+
+void UpdateObstacles(int coor_obs[][4], float x, float y, int nb_obs, int max_pos_x, int max_pos_y, int min, float dist_threshold, int max_lifetime, int min_lifetime)
+{
+	for (int i = 0; i < nb_obs; i++)
+		{
+			if (coor_obs[i][2] == 0 && ((fabs(x - coor_obs[i][0]) < dist_threshold && fabs(y - coor_obs[i][1]) < dist_threshold) || coor_obs[i][3] <= 0))
+				{
+					coor_obs[i][2] = 1;
+				}
+			else if (coor_obs[i][2] == 1)
+				{
+				coor_obs[i][0] = (rand() % (max_pos_x - min + 1)) + min;
+				coor_obs[i][1] = (rand() % (max_pos_y - min + 1)) + min;
+				coor_obs[i][3] = (rand() % (max_lifetime - min_lifetime + 1)) + min_lifetime;
+				coor_obs[i][2] = 0;
+				}
+			coor_obs[i][3] -= 1; // drone ageing
 		}
 }
 
@@ -197,6 +206,8 @@ int main() {
 	float T = 0.1;
 	float Fx=0, Fy=0;
 	float dF = 0.1;
+	int max_lifetime = 6e3; // in (unity)seconds // 1e3
+	int min_lifetime = 6e3; // 1e2
 ////////////////////////////////////////////////////////////////////////////////////////////
 // Initialize ncurses //
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -261,7 +272,7 @@ int main() {
 // Initialize targets //
 ////////////////////////////////////////////////////////////////////////////////////////////
 	
-	int nb_tar=5;
+	int nb_tar=10;
 	int num_tar=nb_tar;
 	int coor_tar[nb_tar][4]; // x, y, is_reached
 	
@@ -277,14 +288,16 @@ int main() {
 // Initialize obstacles //
 ////////////////////////////////////////////////////////////////////////////////////////////
 	
-	int nb_obs=5;
-	int coor_obs[nb_obs][2];
-	float dist_threshold = 0.5;
+	int nb_obs=10;
+	int coor_obs[nb_obs][4]; // x, y, is_reached, life_time
+	float dist_threshold = 1;
 	
 	for (int i=0;i<nb_obs;i++)
 	{
 		coor_obs[i][0] = (rand() % (max_pos_x - min + 1)) + min;
 		coor_obs[i][1] = (rand() % (max_pos_y - min + 1)) + min;
+		coor_obs[i][2] = 0;
+		coor_obs[i][3] = (rand() % (max_lifetime - min_lifetime + 1)) + min_lifetime;
 	}
 	
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -319,18 +332,26 @@ int main() {
 		////////////////////////////////////////////////////////////////////////////////////////////
 		// Update targets //
 		////////////////////////////////////////////////////////////////////////////////////////////
-		UpdateTargets(coor_tar, x, y, nb_tar, dist_threshold);
+		// UpdateTargets(coor_tar, x, y, nb_tar, dist_threshold);
+		UpdateTargets(coor_tar, x, y, nb_tar, &num_tar, max_pos_x, max_pos_y, min, dist_threshold);
 		
 		////////////////////////////////////////////////////////////////////////////////////////////
 		// Update obstacles //
 		////////////////////////////////////////////////////////////////////////////////////////////
-		
+		UpdateObstacles(coor_obs, x, y, nb_obs, max_pos_x, max_pos_y, min, dist_threshold, max_lifetime, min_lifetime);
+		for (int i=0;i<nb_obs;i++) 
+			{
+				mvwprintw(side_w, 40+i, 3, "%d", coor_obs[i][3]);
+				mvwprintw(side_w, 40+i, 8, "%d", coor_obs[i][2]);	
+			}
+
 		////////////////////////////////////////////////////////////////////////////////////////////
 		// Display the targets, the drone and the obstacles //
 		////////////////////////////////////////////////////////////////////////////////////////////
-		DisplayTargets(coor_tar, max_pos_x, max_pos_y, min, nb_tar, &num_tar, main_w);
+		// DisplayTargets(coor_tar, max_pos_x, max_pos_y, min, nb_tar, &num_tar, main_w);
+		DisplayTargets(coor_tar, nb_tar, main_w);
 		DisplayDrone(x, y, color, main_w);
-		DisplayObstacles(coor_obs, nb_obs, main_w, x, y, dist_threshold);
+		DisplayObstacles(coor_obs, nb_obs, main_w);
 		
 		////////////////////////////////////////////////////////////////////////////////////////////
 		// Refresh the windows //
